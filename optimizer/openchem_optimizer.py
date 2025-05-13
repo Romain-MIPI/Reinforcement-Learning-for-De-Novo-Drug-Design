@@ -1,6 +1,5 @@
 import torch.optim
 
-
 class OpenChemOptimizer(object):
     def __init__(self, params, model_params):
         self.params = params[1]
