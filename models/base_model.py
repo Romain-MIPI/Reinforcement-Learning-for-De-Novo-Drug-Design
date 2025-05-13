@@ -97,6 +97,7 @@ def fit(model, scheduler, train_loader, optimizer, criterion, params, eval=False
     print_every = params['print_every']
     save_every = params['save_every']
     n_epochs = params['num_epochs']
+    average = params['average']
     writer = SummaryWriter()
     start = time.time()
     loss_total = 0
@@ -147,7 +148,7 @@ def fit(model, scheduler, train_loader, optimizer, criterion, params, eval=False
                                 'Loss: %.4f]' % (time_since(start), epoch, epoch / n_epochs * 100, cur_loss))
             if eval:
                 assert val_loader is not None
-                val_loss, metrics = evaluate(model, val_loader, criterion, epoch=epoch)
+                val_loss, metrics = evaluate(model, val_loader, criterion, average, epoch=epoch)
                 val_losses.append(val_loss)
                 info = {
                     'Train loss': cur_loss,
