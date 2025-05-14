@@ -6,9 +6,9 @@ import torch.nn.functional as F
 import time
 from tqdm import trange
 
-from utils import time_since
+from models.utils import time_since
 
-from smiles_enumerator import SmilesEnumerator
+from models.smiles_enumerator import SmilesEnumerator
 
 class RNNGenerative(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, layer_type='GRU',

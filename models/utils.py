@@ -129,35 +129,43 @@ def sanitize_smiles(smiles,
     else:
         return new_smiles, idx
 
-def canonize_smiles(smiles, sanitize=True):
+def canonical_smiles(smiles, sanitize=True, throw_warning=False):
     """
     Takes list of SMILES strings and returns list of their canonical SMILES.
-        Args:
-            smiles (list): list of SMILES strings
-            sanitize (bool): parameter specifying whether to sanitize
-            SMILES or not.
+
+    Parameters
+    ----------
+    smiles: list
+        list of SMILES strings to convert into canonical format
+
+    sanitize: bool (default True)
+        parameter specifying whether to sanitize SMILES or not.
             For definition of sanitized SMILES check
-            www.rdkit.org/docs/api/rdkit.Chem.rdmolops-module.html#SanitizeMol
-        Output:
-            new_smiles (list): list of canonical SMILES and NaNs
-            if SMILES string is invalid or unsanitized
-            (when 'sanitize = True')
-        When 'sanitize = True' the function is analogous to:
-        sanitize_smiles(smiles, canonize=True).
+            http://www.rdkit.org/docs/api/rdkit.Chem.rdmolops-module.html#SanitizeMol
+
+    throw_warning: bool (default False)
+        parameter specifying whether warnings will be thrown if a SMILES is
+        invalid
+
+    Returns
+    -------
+    new_smiles: list
+        list of canonical SMILES and NaNs if SMILES string is invalid or
+        unsanitized (when sanitize is True)
+
+    When sanitize is True the function is analogous to:
+        sanitize_smiles(smiles, canonical=True).
     """
     new_smiles = []
-    idx = []
-    for i in range(len(smiles)):
-        sm = smiles[i]
+    for sm in smiles:
         try:
-            new_smiles.append(Chem.MolToSmiles(Chem.MolFromSmiles(sm, sanitize=sanitize)))
-            idx.append(i)
+            mol = Chem.MolFromSmiles(sm, sanitize=sanitize)
+            new_smiles.append(Chem.MolToSmiles(mol))
         except:
+            if throw_warning:
+                warnings.warn(sm + ' can not be canonized: invalid '
+                                   'SMILES string!', UserWarning)
             new_smiles.append('')
-
-        if len(idx) != len(smiles):
-            invalid_rate = 1.0 - len(idx) / len(smiles)
-            warnings.warn('Proportion of unsanitized smiles is %.3f ' % (invalid_rate))
     return new_smiles
 
 def seq2tensor(seqs, tokens, flip=True):

@@ -3,7 +3,7 @@ import torch
 import random
 import numpy as np
 
-from models.utils import read_smi_file, get_token, read_object_property_file
+from models.utils import read_smi_file, get_tokens, read_object_property_file
 
 class GeneratorData(object):
     """
@@ -61,7 +61,7 @@ class GeneratorData(object):
             if len(data[i]) <= max_len:
                 self.file.append(self.start_token + data[i] + self.end_token) 
         self.file_len = len(self.file)
-        self.all_characters, self.char2idx, self.n_characters = get_token(self.file, tokens)
+        self.all_characters, self.char2idx, self.n_characters = get_tokens(self.file, tokens)
         self.use_cuda = use_cuda
         if self.use_cuda is None:
             self.use_cuda = torch.cuda.is_available()
