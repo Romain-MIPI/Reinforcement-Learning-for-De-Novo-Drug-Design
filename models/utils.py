@@ -206,6 +206,9 @@ def process_smiles(smiles,
 
     return clean_smiles, target, length, tokens, token2idx, num_tokens
 
+def identity(input):
+    return input
+
 def time_since(since):
     s = time.time() - since
     m = math.floor(s / 60)

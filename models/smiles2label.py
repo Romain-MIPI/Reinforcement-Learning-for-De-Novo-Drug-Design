@@ -89,10 +89,10 @@ def build_training(model, params):
     return criterion, optimizer, lr_scheduler
 
 
-def train_step(model, optimizer, criterion, inp, target):
+def train_step(model, optimizer, criterion, batch_input, target):
     with torch.autograd.set_detect_anomaly(True):
         optimizer.zero_grad()
-        output = model(inp, eval=False)
+        output = model(batch_input)
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
