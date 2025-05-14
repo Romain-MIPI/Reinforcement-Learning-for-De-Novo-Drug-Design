@@ -3,6 +3,7 @@
 
 import pickle
 import numpy as np
+from collections import Counter
 
 import torch
 import torch.nn as nn
@@ -53,13 +54,16 @@ class RNNPredictor(nn.Module):
         padded_smiles, length = pad_sequences(canonical_smiles)
         smiles_tensor, _ = seq2tensor(padded_smiles, self.tokens, flip=False)
 
-        prediction = []
+        predictions = []
         for i in range(len(self.model)):
             output = self.model[i]([torch.LongTensor(smiles_tensor).cuda(),
                                     torch.LongTensor(length).cuda()],).detach().cpu().numpy()
-            prediction.append(np.argmax(output), axis=1)
+            predictions.append(np.argmax(output, axis=1))
                 
-        prediction = np.array([max(l, key=l.count) for l in prediction.T])
+        prediction = []
+        for l_predict in np.array(predictions).T:
+            value, count = np.unique(l_predict, return_counts=True)
+            prediction.append(value[np.argmax(count)])
 
         if double:
             canonical_smiles = canonical_smiles[0]
