@@ -221,11 +221,9 @@ def evaluate(model, data_loader, criterion=None, average=None, epoch=None):
     if hasattr(model, 'module'):
         has_module = True
     if has_module:
-        task = model.module.task
         eval_metrics = model.module.eval_metrics
         logdir = model.module.logdir
     else:
-        task = model.task
         eval_metrics = model.eval_metrics
         logdir = model.logdir
 
