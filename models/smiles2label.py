@@ -163,19 +163,16 @@ def fit(model, scheduler, train_loader, optimizer, criterion, params, val_loader
             if comm.is_main_process():
                 textlogger.info('TRAINING: [Time: %s, Epoch: %d, Progress: %d%%, '
                                 'Loss: %.4f]' % (time_since(start), epoch, epoch / n_epochs * 100, cur_loss))
-            if eval:
-                assert val_loader is not None
-                val_loss, metrics = evaluate(model, val_loader, criterion, average, epoch=epoch)
-                val_losses.append(val_loss)
-                info = {
-                    'Train loss': cur_loss,
-                    'Validation loss': val_loss,
-                    'Validation metrics': metrics,
-                    'LR': optimizer.param_groups[0]['lr']
-                }
-            else:
-                info = {'Train loss': cur_loss, 'LR': optimizer.param_groups[0]['lr']}
-
+            assert val_loader is not None
+            val_loss, metrics = evaluate(model, val_loader, criterion, average, epoch=epoch)
+            val_losses.append(val_loss)
+            info = {
+                'Train loss': cur_loss,
+                'Validation loss': val_loss,
+                'Validation metrics': metrics,
+                'LR': optimizer.param_groups[0]['lr']
+            }
+            
             if comm.is_main_process():
                 for tag, value in info.items():
                     writer.add_scalar(tag, value, epoch + 1)
