@@ -1,11 +1,11 @@
 # Modified from
 # https://github.com/Mariewelt/OpenChem/blob/master/openchem/models/Smiles2Label.py
 
-from .base_model import BaseModel
+from models.base_model import BaseModel
 
-class Smile2Label(BaseModel):
+class Smiles2Label(BaseModel):
     def __init__(self, params):
-        super(Smile2Label, self).__init__(params)
+        super(Smiles2Label, self).__init__(params)
         self.embedding = self.params['embedding']
         self.embed_params = self.params['embedding_params']
         self.Embedding = self.embedding(self.embed_params)

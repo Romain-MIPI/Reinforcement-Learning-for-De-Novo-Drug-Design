@@ -9,8 +9,8 @@ from torch.nn.utils import clip_grad_norm_
 import torch.distributed as dist
 import logging
 
-from .utils import time_since
-from .utils import communication as comm
+from models.utils import time_since
+import models.communication as comm
 
 import time
 from tqdm import tqdm
