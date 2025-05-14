@@ -9,7 +9,7 @@ import torch.nn as nn
 
 from rdkit import Chem
 
-from models.smile2label import Smiles2Label
+from models.smiles2label import Smiles2Label
 from models.utils import pad_sequences, seq2tensor
 
 class RNNPredictor(nn.Module):
@@ -34,7 +34,6 @@ class RNNPredictor(nn.Module):
 
         for i in range(len(smiles)):
             sm = smiles[i]
-            print(f"{i} | {sm}")
             try:
                 sm = Chem.MolToSmiles(Chem.MolFromSmiles(sm, sanitize=False))
                 if len(sm) == 0:
@@ -43,9 +42,7 @@ class RNNPredictor(nn.Module):
                     canonical_smiles.append(sm)
             except:
                 invalid_smiles.append(sm)
-
-        print(f"canonical smiles : {canonical_smiles}")
-        print(f"invalid_smiles : {invalid_smiles}")
+                
         if len(canonical_smiles) == 0:
             return canonical_smiles, [], invalid_smiles
 
@@ -58,12 +55,11 @@ class RNNPredictor(nn.Module):
 
         prediction = []
         for i in range(len(self.model)):
-            prediction.append(
-                self.model[i]([torch.LongTensor(smiles_tensor).cuda(),
-                               torch.LongTensor(length).cuda()],
-                              eval=True).detach().cpu().numpy())
-        prediction = np.array(prediction).reshape(len(self.model), -1)
-        prediction = np.min(prediction, axis=0)
+            output = self.model[i]([torch.LongTensor(smiles_tensor).cuda(),
+                                    torch.LongTensor(length).cuda()],).detach().cpu().numpy()
+            prediction.append(np.argmax(output), axis=1)
+                
+        prediction = np.array([max(l, key=l.count) for l in prediction.T])
 
         if double:
             canonical_smiles = canonical_smiles[0]
