@@ -46,7 +46,9 @@ class Smiles2Label(nn.Module):
         self.save_every = self.params['save_every']
         self.embedding = self.params['embedding']
         self.embed_params = self.params['embedding_params']
-        self.Embedding = self.embedding(self.embed_params)
+        self.Embedding = self.embedding(num_embeddings=self.embed_params['num_embeddings'],
+                                        embedding_dim=self.embed_params['embedding_dim'],
+                                        padding_idx=self.embed_params['padding_idx'])
         self.encoder = self.params['encoder']
         self.encoder_params = self.params['encoder_params']
         self.Encoder = self.encoder(self.encoder_params, self.use_cuda)

@@ -129,6 +129,37 @@ def sanitize_smiles(smiles,
     else:
         return new_smiles, idx
 
+def canonize_smiles(smiles, sanitize=True):
+    """
+    Takes list of SMILES strings and returns list of their canonical SMILES.
+        Args:
+            smiles (list): list of SMILES strings
+            sanitize (bool): parameter specifying whether to sanitize
+            SMILES or not.
+            For definition of sanitized SMILES check
+            www.rdkit.org/docs/api/rdkit.Chem.rdmolops-module.html#SanitizeMol
+        Output:
+            new_smiles (list): list of canonical SMILES and NaNs
+            if SMILES string is invalid or unsanitized
+            (when 'sanitize = True')
+        When 'sanitize = True' the function is analogous to:
+        sanitize_smiles(smiles, canonize=True).
+    """
+    new_smiles = []
+    idx = []
+    for i in range(len(smiles)):
+        sm = smiles[i]
+        try:
+            new_smiles.append(Chem.MolToSmiles(Chem.MolFromSmiles(sm, sanitize=sanitize)))
+            idx.append(i)
+        except:
+            new_smiles.append('')
+
+        if len(idx) != len(smiles):
+            invalid_rate = 1.0 - len(idx) / len(smiles)
+            warnings.warn('Proportion of unsanitized smiles is %.3f ' % (invalid_rate))
+    return new_smiles
+
 def seq2tensor(seqs, tokens, flip=True):
     tensor = np.zeros((len(seqs), len(seqs[0])))
     for i in range(len(seqs)):
@@ -154,6 +185,35 @@ def pad_sequences(seqs, max_length=None, pad_symbol=' '):
         seqs[i] = seqs[i] + pad_symbol * (max_length - cur_len)
     return seqs, lengths
 
+def read_smi_file(filename, unique=True, add_start_end_tokens=False):
+    """
+    Reads SMILES from file. File must contain one SMILES string per line
+    with \n token in the end of the line.
+
+    Args:
+        filename (str): path to the file
+        unique (bool): return only unique SMILES
+
+    Returns:
+        smiles (list): list of SMILES strings from specified file.
+        success (bool): defines whether operation was successfully completed or not.
+
+    If 'unique=True' this list contains only unique copies.
+    """
+    f = open(filename, 'r')
+    molecules = []
+    for line in f:
+        if add_start_end_tokens:
+            molecules.append('<' + line[:-1] + '>')
+        else:
+            molecules.append(line[:-1])
+    if unique:
+        molecules = list(set(molecules))
+    else:
+        molecules = list(molecules)
+    f.close()
+    return molecules, f.closed
+
 def save_smiles_property_file(path, smiles, labels, delimiter=','):
     f = open(path, 'w')
     n_targets = labels.shape[1]
@@ -177,6 +237,24 @@ def read_smiles_property_file(path, cols_to_read, delimiter=',', keep_header=Fal
     data_ = [data[c][start_position:] for c in cols_to_read]
 
     return data_
+
+def read_object_property_file(path, delimiter=',', cols_to_read=[0, 1], keep_header=False):
+    f = open(path, 'r')
+    reader = csv.reader(f, delimiter=delimiter)
+    data_full = np.array(list(reader))
+    if keep_header:
+        start_position = 0
+    else:
+        start_position = 1
+    assert len(data_full) > start_position
+    data = [[] for _ in range(len(cols_to_read))]
+    for i in range(len(cols_to_read)):
+        col = cols_to_read[i]
+        data[i] = data_full[start_position:, col]
+    f.close()
+    if len(cols_to_read) == 1:
+        data = data[0]
+    return data
 
 def process_smiles(smiles,
                    sanitized=False,
