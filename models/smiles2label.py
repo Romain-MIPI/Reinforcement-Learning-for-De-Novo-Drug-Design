@@ -29,7 +29,6 @@ class Smiles2Label(nn.Module):
         self.use_cuda = self.params['use_cuda']
         self.batch_size = self.params['batch_size']
         self.eval_metrics = self.params['eval_metrics']
-        self.task = self.params['task']
         self.logdir = self.params['logdir']
 
         self.num_epochs = self.params['num_epochs']
@@ -62,7 +61,7 @@ class Smiles2Label(nn.Module):
         return output
 
     @staticmethod
-    def cast_inputs(sample, task, use_cuda, for_prediction=False):
+    def cast_inputs(sample, use_cuda, for_prediction=False):
         batch_mols = sample['tokenized_smiles'].to(dtype=torch.long)
         batch_length = sample['length'].to(dtype=torch.long)
         batch_labels = sample['labels'].to(dtype=torch.long)
@@ -111,7 +110,7 @@ def train_step(model, optimizer, criterion, batch_input, target):
     return loss
 
 
-def fit(model, scheduler, train_loader, optimizer, criterion, params, eval=False, val_loader=None, cur_epoch=0):
+def fit(model, scheduler, train_loader, optimizer, criterion, params, val_loader=None, cur_epoch=0):
     textlogger = logging.getLogger("openchem.fit")
     logdir = params['logdir']
     print_every = params['print_every']
@@ -136,15 +135,13 @@ def fit(model, scheduler, train_loader, optimizer, criterion, params, eval=False
         for i_batch, sample_batched in enumerate(train_loader):
 
             if has_module:
-                task = model.module.task
                 use_cuda = model.module.use_cuda
                 batch_input, batch_target = model.module.cast_inputs(
-                  sample_batched, task, use_cuda)
+                  sample_batched, use_cuda)
             else:
-                task = model.task
                 use_cuda = model.use_cuda
                 batch_input, batch_target = model.cast_inputs(
-                  sample_batched, task, use_cuda)
+                  sample_batched, use_cuda)
 
             loss = train_step(model, optimizer, criterion, batch_input, batch_target)
             if schedule_by_iter:
@@ -232,18 +229,17 @@ def evaluate(model, data_loader, criterion=None, average=None, epoch=None):
         eval_metrics = model.eval_metrics
         logdir = model.logdir
 
+    model.eval()
     for i_batch, sample_batched in enumerate(data_loader):
         if has_module:
-            task = model.module.task
             use_cuda = model.module.use_cuda
             batch_input, batch_target = model.module.cast_inputs(
-              sample_batched, task, use_cuda)
+              sample_batched, use_cuda)
         else:
-            task = model.task
             use_cuda = model.use_cuda
             batch_input, batch_target = model.cast_inputs(
-              sample_batched, task, use_cuda)
-        predicted = model(batch_input, eval=True)
+              sample_batched, use_cuda)
+        predicted = model(batch_input)
         try:
             loss = criterion(predicted, batch_target)
         except TypeError:
@@ -263,21 +259,10 @@ def evaluate(model, data_loader, criterion=None, average=None, epoch=None):
     
 
     cur_loss = loss_total / n_batches
-    if task == 'classification':
-        prediction = np.argmax(prediction, axis=1)
+    prediction = np.argmax(prediction, axis=1)
     
     metrics = eval_metrics(ground_truth, prediction, average)
     metrics = np.mean(metrics)
-
-    if task == "graph_generation":
-        f = open(logdir + "/debug_smiles_epoch_" + str(epoch) + ".smi", "w")
-        if isinstance(metrics, list) and len(metrics) == len(prediction):
-            for i in range(len(prediction)):
-                f.writelines(str(prediction[i]) + "," + str(metrics[i]) + "\n")
-        else:
-            for i in range(len(prediction)):
-                f.writelines(str(prediction[i]) + "\n")
-            f.close()
 
     if comm.is_main_process():
         textlogger.info('EVALUATION: [Time: %s, Loss: %.4f, Metrics: %.4f]' % (time_since(start), cur_loss, metrics))
@@ -285,7 +270,7 @@ def evaluate(model, data_loader, criterion=None, average=None, epoch=None):
     return cur_loss, metrics
 
 
-def predict(model, data_loader, eval=True):
+def predict(model, data_loader):
     textlogger = logging.getLogger("openchem.predict")
     model.eval()
     start = time.time()
@@ -303,23 +288,20 @@ def predict(model, data_loader, eval=True):
 
     for i_batch, sample_batched in enumerate(data_loader):
         if has_module:
-            task = model.module.task
             use_cuda = model.module.use_cuda
             batch_input, batch_object = model.module.cast_inputs(
-              sample_batched, task, use_cuda, for_prediction=True)
+              sample_batched, use_cuda, for_prediction=True)
         else:
-            task = model.task
             use_cuda = model.use_cuda
             batch_input, batch_object = model.cast_inputs(
-              sample_batched, task, use_cuda, for_predction=True)
-        predicted = model(batch_input, eval=True)
+              sample_batched, use_cuda, for_predction=True)
+        predicted = model(batch_input)
         if hasattr(predicted, 'detach'):
             predicted = predicted.detach().cpu().numpy()
         prediction += list(predicted)
         samples += list(batch_object)
 
-    if task == 'classification':
-        prediction = np.argmax(prediction, axis=1)
+    prediction = np.argmax(prediction, axis=1)
     f = open(logdir + "/predictions.txt", "w")
     assert len(prediction) == len(samples)
 
