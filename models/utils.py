@@ -5,7 +5,7 @@ import time
 import math
 from rdkit import Chem
 
-from .smiles_enumerator import SmilesEnumerator
+from models.smiles_enumerator import SmilesEnumerator
 
 def get_tokens(smiles, tokens=None):
     """

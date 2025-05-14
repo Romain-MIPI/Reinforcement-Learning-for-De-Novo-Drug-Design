@@ -4,7 +4,7 @@ import numpy as np
 
 from torch.utils.data import Dataset
 
-from .utils import process_smiles, augment_smiles, read_smiles_property_file
+from models.utils import process_smiles, augment_smiles, read_smiles_property_file
 
 class SmilesDataset(Dataset):
     """

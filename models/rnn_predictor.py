@@ -9,8 +9,8 @@ import torch.nn as nn
 
 from rdkit import Chem
 
-from .smile2label import Smiles2Label
-from .utils import pad_sequences, seq2tensor
+from models.smile2label import Smiles2Label
+from models.utils import pad_sequences, seq2tensor
 
 class RNNPredictor(nn.Module):
     def __init__(self, path_to_parameters_dict, path_to_checkpoint, tokens):
