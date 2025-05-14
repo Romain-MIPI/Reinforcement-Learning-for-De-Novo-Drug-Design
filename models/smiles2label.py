@@ -8,6 +8,7 @@ import torch.nn as nn
 from torch.nn.utils import clip_grad_norm_
 import torch.distributed as dist
 import logging
+from sklearn import balanced_accuracy_score, f1_score, recall_score, precision_score
 
 from models.utils import time_since
 import models.communication as comm
@@ -256,7 +257,10 @@ def evaluate(model, data_loader, criterion=None, average=None, epoch=None):
     cur_loss = loss_total / n_batches
     prediction = np.argmax(prediction, axis=1)
     
-    metrics = eval_metrics(ground_truth, prediction, average)
+    if eval_metrics == balanced_accuracy_score:
+        metrics = eval_metrics(ground_truth, prediction)
+    else:
+        metrics = eval_metrics(ground_truth, prediction, average=average)
     metrics = np.mean(metrics)
 
     if comm.is_main_process():
