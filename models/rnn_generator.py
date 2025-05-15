@@ -10,7 +10,7 @@ from models.utils import time_since
 
 from models.smiles_enumerator import SmilesEnumerator
 
-class RNNGenerative(nn.Module):
+class RNNGenerator(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, layer_type='GRU',
                  n_layers=1, is_bidirectional=False, has_stack=False,
                  stack_width=None, stack_depth=None, use_cuda=None,
@@ -61,7 +61,7 @@ class RNNGenerative(nn.Module):
             learning rate for the optimizer
 
         """
-        super(RNNGenerative, self).__init__()
+        super(RNNGenerator, self).__init__()
         
         if layer_type not in ['GRU', 'LSTM']:
             raise InvalidArgumentError('Layer type must be GRU or LSTM')
