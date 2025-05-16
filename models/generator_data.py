@@ -3,7 +3,7 @@ import torch
 import random
 import numpy as np
 
-from models.utils import read_smi_file, get_tokens, read_object_property_file
+from models.utils import read_smi_file, get_tokens, read_object_property_file, save_smiles_property_file
 
 class GeneratorData(object):
     """
@@ -104,8 +104,19 @@ class GeneratorData(object):
         target = self.char_tensor(chunk[1:])
         return inp, target
 
-    def read_sdf_file(self, path, fields_to_read):
-        raise NotImplementedError
+    def update_elite(self, path, elite_smiles, elite_labels):
+        file, _ = read_smi_file(path, unique=True)
+        smiles, labels = file[0], file[1]
+        n_to_change = len(elite_smiles)
+        poor_smiles = np.where(labels == 0)[0]
+        index_to_change = np.random.choice(poor_smiles, n_to_change)
+        for i, ind in enumerate(index_to_change):
+            smiles[ind] = elite_smiles[i]
+            labels[ind] = elite_labels[i]
+        save_smiles_property_file(path, smiles, labels)
+        self.file, success = read_smi_file(path, unique=True)
+        self.file_len = len(self.file)
+        assert success
         
     def update_data(self, path):
         self.file, success = read_smi_file(path, unique=True)
