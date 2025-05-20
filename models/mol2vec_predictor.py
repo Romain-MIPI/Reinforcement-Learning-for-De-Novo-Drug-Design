@@ -12,7 +12,7 @@ class Mol2VecPredictor():
             with open(path_to_checkpoint+f'{i}.pkl', 'rb') as f:
                 self.models.append(pickle.load(f))
 
-    def predict(self, batch_input):
+    def predict(self, wv, batch_input):
         batch_input = np.array(batch_input)
         prediction = []
 
@@ -27,7 +27,7 @@ class Mol2VecPredictor():
 
         # embedding to mol2vec
         sentences = [mol2alt_sentence(mol, 1) for mol in mols]
-        mol_vec = [x for x in sentences2vec(sentences, model, unseen='UNK')]
+        mol_vec = [x for x in sentences2vec(sentences, wv, unseen='UNK')]
 
         # predict labels for valid smiles
         tmp = []
