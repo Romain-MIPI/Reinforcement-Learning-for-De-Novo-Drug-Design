@@ -4,6 +4,7 @@ import csv
 import time
 import math
 from rdkit import Chem
+from rdkit.Chem import AllChem
 
 from models.smiles_enumerator import SmilesEnumerator
 
@@ -301,3 +302,76 @@ def time_since(since):
     s -= m * 60
 
     return '%dm %ds' % (m, s)
+
+def sentences2vec(sentences, model, unseen=None):
+    """Generate vectors for each sentence (list) in a list of sentences. Vector is simply a
+    sum of vectors for individual words.
+    
+    Parameters
+    ----------
+    sentences : list, array
+        List with sentences
+    model : word2vec.Word2Vec
+        Gensim word2vec model
+    unseen : None, str
+        Keyword for unseen words. If None, those words are skipped.
+        https://stats.stackexchange.com/questions/163005/how-to-set-the-dictionary-for-text-analysis-using-neural-networks/163032#163032
+
+    Returns
+    -------
+    np.array
+    """
+    keys = set(model.wv.vocab.keys())
+    vec = []
+    if unseen:
+        unseen_vec = model.wv.word_vec(unseen)
+
+    for sentence in sentences:
+        if unseen:
+            vec.append(sum([model.wv.word_vec(y) if y in set(sentence) & keys
+                       else unseen_vec for y in sentence]))
+        else:
+            vec.append(sum([model.wv.word_vec(y) for y in sentence 
+                            if y in set(sentence) & keys]))
+    return np.array(vec)
+
+def mol2alt_sentence(mol, radius):
+    """Same as mol2sentence() expect it only returns the alternating sentence
+    Calculates ECFP (Morgan fingerprint) and returns identifiers of substructures as 'sentence' (string).
+    Returns a tuple with 1) a list with sentence for each radius and 2) a sentence with identifiers from all radii
+    combined.
+    NOTE: Words are ALWAYS reordered according to atom order in the input mol object.
+    NOTE: Due to the way how Morgan FPs are generated, number of identifiers at each radius is smaller
+    
+    Parameters
+    ----------
+    mol : rdkit.Chem.rdchem.Mol
+    radius : float 
+        Fingerprint radius
+    
+    Returns
+    -------
+    list
+        alternating sentence
+    combined
+    """
+    radii = list(range(int(radius) + 1))
+    info = {}
+    _ = AllChem.GetMorganFingerprint(mol, radius, bitInfo=info)  # info: dictionary identifier, atom_idx, radius
+
+    mol_atoms = [a.GetIdx() for a in mol.GetAtoms()]
+    dict_atoms = {x: {r: None for r in radii} for x in mol_atoms}
+
+    for element in info:
+        for atom_idx, radius_at in info[element]:
+            dict_atoms[atom_idx][radius_at] = element  # {atom number: {fp radius: identifier}}
+
+    # merge identifiers alternating radius to sentence: atom 0 radius0, atom 0 radius 1, etc.
+    identifiers_alt = []
+    for atom in dict_atoms:  # iterate over atoms
+        for r in radii:  # iterate over radii
+            identifiers_alt.append(dict_atoms[atom][r])
+
+    alternating_sentence = map(str, [x for x in identifiers_alt if x])
+
+    return list(alternating_sentence)

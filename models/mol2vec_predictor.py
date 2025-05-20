@@ -2,6 +2,7 @@ import pickle
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from rdkit import Chem
+from models.utils import mol2alt_sentence, sentences2vec
 
 class Mol2VecPredictor():
     def __init__(self, path_to_checkpoint, number_of_fold):
@@ -24,10 +25,14 @@ class Mol2VecPredictor():
             except:
                 pass
 
+        # embedding to mol2vec
+        sentences = np.array([mol2alt_sentence(x, 1) for x in batch_input[ind_valid]])
+        batch_embedded = np.array([x for x in sentences2vec(sentences, model, unseen='UNK')])
+
         # predict labels for valid smiles
         tmp = []
         for model in self.models:
-            tmp.append(model.predict(batch_input[ind_valid].reshape(-1, 1)))
+            tmp.append(model.predict(batch_embedded))
         tmp = np.array(tmp).T
         for i in range(len(batch_input)):
             value, count = np.unique(tmp[i], return_counts=True)
