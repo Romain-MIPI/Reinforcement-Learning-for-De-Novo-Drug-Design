@@ -12,6 +12,7 @@ class Mol2VecPredictor():
                 self.models.append(pickle.load(f))
 
     def predict(self, batch_input):
+        batch_input = np.array(batch_input)
         prediction = []
 
         # get all valid smiles
