@@ -34,7 +34,7 @@ class Mol2VecPredictor():
         for model in self.models:
             tmp.append(model.predict(mol_vec))
         tmp = np.array(tmp).T
-        for i in range(len(batch_input)):
+        for i in range(len(tmp)):
             value, count = np.unique(tmp[i], return_counts=True)
             prediction.append(value[np.argmax(count)])
 
