@@ -60,6 +60,7 @@ class GeneratorData(object):
         for i in range(len(data)):
             if len(data[i]) <= max_len:
                 self.file.append(self.start_token + data[i] + self.end_token) 
+        self.labels = []
         self.file_len = len(self.file)
         self.all_characters, self.char2idx, self.n_characters = get_tokens(self.file, tokens)
         self.use_cuda = use_cuda
@@ -105,18 +106,13 @@ class GeneratorData(object):
         return inp, target
 
     def update_elite(self, path, elite_smiles, elite_labels):
-        file, _ = read_smi_file(path, unique=True)
-        smiles, labels = file[0], file[1]
+        smiles, labels = self.file, self.labels
         n_to_change = len(elite_smiles)
         poor_smiles = np.where(labels == 0)[0]
         index_to_change = np.random.choice(poor_smiles, n_to_change)
         for i, ind in enumerate(index_to_change):
             smiles[ind] = elite_smiles[i]
             labels[ind] = elite_labels[i]
-        save_smiles_property_file(path, smiles, labels)
-        self.file, success = read_smi_file(path, unique=True)
-        self.file_len = len(self.file)
-        assert success
         
     def update_data(self, path):
         self.file, success = read_smi_file(path, unique=True)
