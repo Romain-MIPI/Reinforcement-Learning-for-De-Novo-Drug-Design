@@ -27,7 +27,7 @@ class Mol2VecPredictor():
         # predict labels for valid smiles
         tmp = []
         for model in self.models:
-            tmp.append(model.predict(batch_input[ind_valid]))
+            tmp.append(model.predict(batch_input[ind_valid].reshape(-1, 1)))
         tmp = np.array(tmp).T
         for i in range(len(batch_input)):
             value, count = np.unique(tmp[i], return_counts=True)
