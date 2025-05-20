@@ -26,8 +26,8 @@ class Mol2VecPredictor():
                 mols.append(m)
 
         # embedding to mol2vec
-        sentences = np.array([mol2alt_sentence(mol, 1) for mol in mols])
-        mol_vec = np.array([x for x in sentences2vec(sentences, model, unseen='UNK')])
+        sentences = [mol2alt_sentence(mol, 1) for mol in mols]
+        mol_vec = [x for x in sentences2vec(sentences, model, unseen='UNK')]
 
         # predict labels for valid smiles
         tmp = []
