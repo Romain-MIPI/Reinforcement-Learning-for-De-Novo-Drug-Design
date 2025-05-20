@@ -18,21 +18,23 @@ class Mol2VecPredictor():
 
         # get all valid smiles
         ind_valid = []
+        mols = []
         for i in range(len(batch_input)):
             try:
-                _ = Chem.MolFromSmiles(batch_input[i])
+                m = Chem.MolFromSmiles(batch_input[i])
                 ind_valid.append(i)
+                mols.append(m)
             except:
                 pass
 
         # embedding to mol2vec
-        sentences = np.array([mol2alt_sentence(x, 1) for x in batch_input[ind_valid]])
-        batch_embedded = np.array([x for x in sentences2vec(sentences, model, unseen='UNK')])
+        sentences = np.array([mol2alt_sentence(x, 1) for x in mols])
+        mol_vec = np.array([x for x in sentences2vec(sentences, model, unseen='UNK')])
 
         # predict labels for valid smiles
         tmp = []
         for model in self.models:
-            tmp.append(model.predict(batch_embedded))
+            tmp.append(model.predict(mol_vec))
         tmp = np.array(tmp).T
         for i in range(len(batch_input)):
             value, count = np.unique(tmp[i], return_counts=True)
