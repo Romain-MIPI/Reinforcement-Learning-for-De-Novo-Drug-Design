@@ -13,9 +13,9 @@ class Mol2VecPredictor():
 
     def predict(self, batch_input):
         prediction = []
-        ind_valid = []
 
         # get all valid smiles
+        ind_valid = []
         for i in range(len(batch_input)):
             try:
                 _ = Chem.MolFromSmiles(batch_input[i])
@@ -24,6 +24,7 @@ class Mol2VecPredictor():
                 pass
 
         # predict labels for valid smiles
+        tmp = []
         for model in self.models:
             tmp.append(model.predict(batch_input[ind_valid]))
         tmp = np.array(tmp).T
