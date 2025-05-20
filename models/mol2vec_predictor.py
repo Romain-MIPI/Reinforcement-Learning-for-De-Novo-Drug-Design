@@ -1,0 +1,56 @@
+import pickle
+import numpy as np
+from sklearn.model_selection import StratifiedKFold
+from rdkit import Chem
+
+class Mol2VecPredictor():
+    def __init__(self, path_to_checkpoint, number_of_fold):
+        self.models = []
+        self.number_of_fold = number_of_fold
+        for i in range(number_of_fold):
+            with open(path_to_checkpoint+f'{i}.pkl', 'rb') as f:
+                self.models.append(pickle.load(f))
+
+    def predict(self, batch_input):
+        prediction = []
+        ind_valid = []
+
+        # get all valid smiles
+        for i in range(len(batch_input)):
+            try:
+                _ = Chem.MolFromSmiles(batch_input[i])
+                ind_valid.append(i)
+            except:
+                pass
+
+        # predict labels for valid smiles
+        for model in self.models:
+            tmp.append(model.predict(batch_input[ind_valid]))
+        tmp = np.array(tmp).T
+        for i in range(len(batch_input)):
+            value, count = np.unique(tmp[i], return_counts=True)
+            prediction.append(value[np.argmax(count)])
+
+        # collect all prediction
+        all_prediction = []
+        counter = 0
+        for i in range(len(batch_input)):
+            if i in ind_valid:
+                all_prediction.append(prediction[counter])
+                counter += 1
+            else:
+                all_prediction.append(-1)
+
+        return all_prediction
+        
+    def partial_fit(self, new_batch_input, new_batch_label):
+        kf = StratifiedKFold(n_splits=self.number_of_fold, shuffle=True, random_state=42)
+        for train, _ in kf(new_batch_input, new_batch_label):
+            for i in range(self.number_of_fold):
+                classes = np.unique(new_batch_label[train])
+                self.models[i].partial_fit(new_batch_input[train], new_batch_label[train], classes)
+
+    def save_model(self, path_to_checkpoint):
+        for i in range(self.number_of_fold):
+            with open(path_to_checkpoint+f'{i}.pkl', 'wb') as f:
+                pickle.dump(self.models[i], f)
