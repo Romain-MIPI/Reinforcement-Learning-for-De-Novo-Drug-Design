@@ -48,7 +48,7 @@ class Mol2VecPredictor():
             else:
                 all_prediction.append(-1)
 
-        return all_prediction
+        return batch_input[ind_valid], all_prediction
         
     def partial_fit(self, new_batch_input, new_batch_label):
         kf = StratifiedKFold(n_splits=self.number_of_fold, shuffle=True, random_state=42)
