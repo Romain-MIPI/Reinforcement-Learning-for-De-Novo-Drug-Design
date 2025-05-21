@@ -25,30 +25,33 @@ class Mol2VecPredictor():
                 ind_valid.append(i)
                 mols.append(m)
 
-        # embedding to mol2vec
-        sentences = [mol2alt_sentence(mol, 1) for mol in mols]
-        mol_vec = [x for x in sentences2vec(sentences, wv, unseen='UNK')]
+        if len(mols) > 0:
+            # embedding to mol2vec
+            sentences = [mol2alt_sentence(mol, 1) for mol in mols]
+            mol_vec = [x for x in sentences2vec(sentences, wv, unseen='UNK')]
 
-        # predict labels for valid smiles
-        tmp = []
-        for model in self.models:
-            tmp.append(model.predict(mol_vec))
-        tmp = np.array(tmp).T
-        for i in range(len(tmp)):
-            value, count = np.unique(tmp[i], return_counts=True)
-            prediction.append(value[np.argmax(count)])
+            # predict labels for valid smiles
+            tmp = []
+            for model in self.models:
+                tmp.append(model.predict(mol_vec))
+            tmp = np.array(tmp).T
+            for i in range(len(tmp)):
+                value, count = np.unique(tmp[i], return_counts=True)
+                prediction.append(value[np.argmax(count)])
 
-        # collect all prediction
-        all_prediction = []
-        counter = 0
-        for i in range(len(batch_input)):
-            if i in ind_valid:
-                all_prediction.append(prediction[counter])
-                counter += 1
-            else:
-                all_prediction.append(-1)
-
-        return batch_input[ind_valid], all_prediction
+            # collect all prediction
+            all_prediction = []
+            counter = 0
+            for i in range(len(batch_input)):
+                if i in ind_valid:
+                    all_prediction.append(prediction[counter])
+                    counter += 1
+                else:
+                    all_prediction.append(-1)
+            return batch_input[ind_valid], all_prediction
+        
+        else:
+            return [], [-1]
         
     def partial_fit(self, new_batch_input, new_batch_label):
         kf = StratifiedKFold(n_splits=self.number_of_fold, shuffle=True, random_state=42)

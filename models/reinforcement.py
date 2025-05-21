@@ -99,13 +99,13 @@ class Reinforcement(object):
                     try:
                         mol = Chem.MolFromSmiles(trajectory[1:-1])
                         trajectory = '<' + Chem.MolToSmiles(mol) + '>'
-                        reward = self.get_reward([trajectory[1:-1]], 
+                        reward = self.get_reward(trajectory[1:-1], 
                                                  self.predictor, self.wv, 
                                                  **kwargs)[0]
                     except:
                         reward = 0
                 else:
-                    reward = self.get_reward([trajectory[1:-1]],
+                    reward = self.get_reward(trajectory[1:-1],
                                              self.predictor, self.wv,  
                                              **kwargs)[0]
 
