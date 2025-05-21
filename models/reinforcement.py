@@ -99,15 +99,15 @@ class Reinforcement(object):
                     try:
                         mol = Chem.MolFromSmiles(trajectory[1:-1])
                         trajectory = '<' + Chem.MolToSmiles(mol) + '>'
-                        reward = self.get_reward(trajectory[1:-1], 
-                                                 self.predictor, 
-                                                 **kwargs)
+                        reward = self.get_reward([trajectory[1:-1]], 
+                                                 self.predictor, self.wv, 
+                                                 **kwargs)[0]
                     except:
                         reward = 0
                 else:
-                    reward = self.get_reward(trajectory[1:-1],
-                                             self.predictor, 
-                                             **kwargs)
+                    reward = self.get_reward([trajectory[1:-1]],
+                                             self.predictor, self.wv,  
+                                             **kwargs)[0]
 
             # Converting string of characters into tensor
             trajectory_input = data.char_tensor(trajectory)
