@@ -151,7 +151,8 @@ class Reinforcement(object):
             labels = self.predictor.predict(data.file)
             data.labels = labels
 
-        all_losses = []
+        self.generator.optimizer.zero_grad()
+        total_reward = 0
         for _ in range(n_batch):
             # generate new samples
             new_samples = np.zeros(1000)
@@ -168,6 +169,8 @@ class Reinforcement(object):
 
             # update
             data.update_elite(elite_smiles, elite_labels)
-            all_losses += self.generator.fit(data, 100)
+            self.generator.fit(data, 100)
 
-        return all_losses
+            total_reward.append(rewards.mean())
+
+        return total_reward
