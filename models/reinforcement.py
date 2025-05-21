@@ -146,7 +146,7 @@ class Reinforcement(object):
         
         return total_reward, rl_loss.item()
     
-    def cross_entropy(self, data, initialize=True, n_batch=100, percentile=0.2):
+    def cross_entropy(self, data, initialize=True, n_batch=10, percentile=0.2):
         if initialize:
             _, labels = self.predictor.predict(self.wv, data.file)
             data.labels = labels
@@ -157,7 +157,7 @@ class Reinforcement(object):
             # generate new samples
             new_samples = []
             for _ in range(1000):
-                new_samples.append(self.generator.evaluate(data))
+                new_samples.append(self.generator.evaluate(data)[1:-1])
 
             # compute rewards
             rewards = self.get_reward(new_samples, self.predictor, self.wv)
