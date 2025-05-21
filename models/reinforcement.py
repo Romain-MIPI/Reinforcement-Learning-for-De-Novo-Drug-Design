@@ -155,9 +155,9 @@ class Reinforcement(object):
         total_reward = 0
         for _ in range(n_batch):
             # generate new samples
-            new_samples = np.zeros(1000)
-            for i in range(1000):
-                new_samples[i] = self.generator.evaluate(data)
+            new_samples = []
+            for _ in range(1000):
+                new_samples.append(self.generator.evaluate(data))
 
             # compute rewards
             rewards = self.get_reward(new_samples, self.predictor, self.wv)
