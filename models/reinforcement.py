@@ -5,7 +5,7 @@ from rdkit import Chem
 
 
 class Reinforcement(object):
-    def __init__(self, generator, predictor, get_reward):
+    def __init__(self, generator, predictor, wv, get_reward):
         """
         Constructor for the Reinforcement object.
 
@@ -36,6 +36,7 @@ class Reinforcement(object):
         super(Reinforcement, self).__init__()
         self.generator = generator
         self.predictor = predictor
+        self.wv = wv
         self.get_reward = get_reward
 
     def policy_gradient(self, data, n_batch=10, gamma=0.97,
@@ -158,7 +159,7 @@ class Reinforcement(object):
                 new_samples[i] = self.generator.evaluate(data)
 
             # compute rewards
-            rewards = self.get_reward(new_samples, self.predictor)
+            rewards = self.get_reward(new_samples, self.predictor, self.wv)
             reward_threshold = np.percentile(rewards, percentile)
 
             # selection elites
@@ -166,7 +167,7 @@ class Reinforcement(object):
             elite_labels = self.predictor.predict(elite_smiles)
 
             # update
-            data.update_elite(path, elite_smiles, elite_labels)
+            data.update_elite(elite_smiles, elite_labels)
             all_losses += self.generator.fit(data, 100)
 
         return all_losses

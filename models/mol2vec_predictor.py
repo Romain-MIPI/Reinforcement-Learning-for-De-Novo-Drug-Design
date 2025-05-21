@@ -15,8 +15,6 @@ class Mol2VecPredictor():
     def predict(self, wv, batch_input):
         batch_input = np.array(batch_input)
         prediction = []
-        valid_smiles = []
-        invalid_smiles = []
 
         # get all valid smiles
         ind_valid = []
@@ -46,13 +44,11 @@ class Mol2VecPredictor():
         for i in range(len(batch_input)):
             if i in ind_valid:
                 all_prediction.append(prediction[counter])
-                valid_smiles.append(batch_input[i])
                 counter += 1
             else:
                 all_prediction.append(-1)
-                invalid_smiles.append(batch_input[i])
 
-        return valid_smiles, all_prediction, invalid_smiles
+        return all_prediction
         
     def partial_fit(self, new_batch_input, new_batch_label):
         kf = StratifiedKFold(n_splits=self.number_of_fold, shuffle=True, random_state=42)

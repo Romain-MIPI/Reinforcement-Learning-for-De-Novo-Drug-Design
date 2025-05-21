@@ -105,7 +105,7 @@ class GeneratorData(object):
         target = self.char_tensor(chunk[1:])
         return inp, target
 
-    def update_elite(self, path, elite_smiles, elite_labels):
+    def update_elite(self, elite_smiles, elite_labels):
         smiles, labels = self.file, self.labels
         n_to_change = len(elite_smiles)
         poor_smiles = np.where(labels == 0)[0]
