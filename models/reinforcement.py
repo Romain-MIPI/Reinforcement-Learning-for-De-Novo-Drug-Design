@@ -148,7 +148,7 @@ class Reinforcement(object):
     
     def cross_entropy(self, data, initialize=True, n_batch=10, percentile=0.2):
         if initialize:
-            _, labels = self.predictor.predict(self.wv, data.file)
+            _, labels = self.predictor.predict(self.wv, [x[1:-1] for x in data.file])
             data.labels = labels
 
         self.generator.optimizer.zero_grad()
@@ -159,12 +159,13 @@ class Reinforcement(object):
             for _ in range(1000):
                 new_samples.append(self.generator.evaluate(data)[1:-1])
 
+            unique_smiles = np.unique(new_samples)
             # compute rewards
-            rewards = self.get_reward(new_samples, self.predictor, self.wv)
+            rewards = self.get_reward(unique_smiles, self.predictor, self.wv)
             reward_threshold = np.percentile(rewards, percentile)
 
             # selection elites
-            elite_smiles = new_samples[np.where(rewards >= reward_threshold)[0]]
+            elite_smiles = unique_smiles[np.where(rewards >= reward_threshold)[0]]
             _, elite_labels = self.predictor.predict(self.wv, elite_smiles)
 
             # update
