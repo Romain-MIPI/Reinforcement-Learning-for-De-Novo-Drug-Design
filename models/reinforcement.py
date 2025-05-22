@@ -167,6 +167,6 @@ class Reinforcement(object):
             data.update_elite(elite_smiles, elite_labels, self.predictor, self.wv)
             self.generator.fit(data, n_iter)
 
-            total_reward.append(rewards.mean())
+            total_reward += rewards.mean()
 
         return total_reward
