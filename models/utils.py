@@ -335,8 +335,7 @@ def sentences2vec(sentences, model, unseen=None):
                             if y in set(sentence) & keys]))
 
     print("###############################\n")        
-    for i in range(len(vec)):
-        print(len(vec[i]))
+    print("vec :", vec)
     print("###############################\n") 
 
     return np.array(vec)
