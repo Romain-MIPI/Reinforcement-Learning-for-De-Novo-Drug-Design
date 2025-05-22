@@ -107,19 +107,19 @@ class GeneratorData(object):
         target = self.char_tensor(chunk[1:])
         return inp, target
 
-    def update_elite(self, elite_smiles, elite_labels, predictor):
+    def update_elite(self, elite_smiles, elite_labels, predictor, wv):
         if self.labels == []:
             labels = []
             if len(self.file) > 1000:
                 pred = 0
                 for i in trange(1000, self.file_len, 1000):
-                    labels += predictor.predict(self.wv, [x[1:-1] for x in self.file[pred:i]])[1]
+                    labels += predictor.predict(wv, [x[1:-1] for x in self.file[pred:i]])[1]
                     pred = i
                 if len(self.file) % 1000 != 0:
-                    labels += predictor.predict(self.wv, [x[1:-1] for x in self.file[pred:-1]])[1]
+                    labels += predictor.predict(wv, [x[1:-1] for x in self.file[pred:-1]])[1]
                 self.labels = labels
             else:
-                self.labels = predictor.predict(self.wv, [x[1:-1] for x in self.file])[1]
+                self.labels = predictor.predict(wv, [x[1:-1] for x in self.file])[1]
 
         n_to_change = len(elite_smiles)
         poor_smiles = np.where(self.labels == 0)[0]
