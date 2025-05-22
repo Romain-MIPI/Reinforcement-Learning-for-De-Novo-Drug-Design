@@ -330,7 +330,7 @@ def sentences2vec(sentences, model, unseen=None):
         if unseen:
             tmp = sum([model.wv.word_vec(y) if y in set(sentence) & keys
                        else unseen_vec for y in sentence])
-            if tmp != 0:
+            if type(tmp) != int:
                 vec.append(tmp)
             else:
                 vec.append(np.zeros(model.wv.vector_size))
