@@ -333,7 +333,7 @@ def sentences2vec(sentences, model, unseen=None):
         else:
             vec.append(sum([model.wv.word_vec(y) for y in sentence 
                             if y in set(sentence) & keys]))
-    return np.array(vec)
+    return vec
 
 def mol2alt_sentence(mol, radius):
     """Same as mol2sentence() expect it only returns the alternating sentence
