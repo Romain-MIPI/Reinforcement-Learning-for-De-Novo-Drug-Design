@@ -146,10 +146,20 @@ class Reinforcement(object):
         
         return total_reward, rl_loss.item()
     
-    def cross_entropy(self, data, initialize=True, n_batch=10, percentile=0.2):
+    def cross_entropy(self, data, initialize=True, n_batch=10, n_iter=100, percentile=0.2):
+        # compute labels of data
         if initialize:
-            _, labels = self.predictor.predict(self.wv, [x[1:-1] for x in data.file])
-            data.labels = labels
+            labels = []
+            if len(data.file) > 1000:
+                pred = 0
+                for i in range(1000, len(data.file), 1000):
+                    labels += self.predictor.predict(self.wv, [x[1:-1] for x in data.file[pred:i]])[1]
+                    pred = i
+                if len(data) % 1000 != 0:
+                    labels += self.predictor.predict(self.wv, [x[1:-1] for x in data.file[i:-1]])[1]
+                data.labels = labels
+            else:
+                data.labels = self.predictor.predict(self.wv, [x[1:-1] for x in data.file])[1]
 
         self.generator.optimizer.zero_grad()
         total_reward = 0
@@ -170,7 +180,7 @@ class Reinforcement(object):
 
             # update
             data.update_elite(elite_smiles, elite_labels)
-            self.generator.fit(data, 100)
+            self.generator.fit(data, n_iter)
 
             total_reward.append(rewards.mean())
 
