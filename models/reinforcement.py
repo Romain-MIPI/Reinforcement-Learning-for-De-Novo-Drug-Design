@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from rdkit import Chem
-
+from tqdm import trange
 
 class Reinforcement(object):
     def __init__(self, generator, predictor, wv, get_reward):
@@ -152,11 +152,11 @@ class Reinforcement(object):
             labels = []
             if len(data.file) > 1000:
                 pred = 0
-                for i in range(1000, len(data.file), 1000):
+                for i in trange(1000, len(data.file), 1000):
                     labels += self.predictor.predict(self.wv, [x[1:-1] for x in data.file[pred:i]])[1]
                     pred = i
-                if len(data) % 1000 != 0:
-                    labels += self.predictor.predict(self.wv, [x[1:-1] for x in data.file[i:-1]])[1]
+                if len(data.file) % 1000 != 0:
+                    labels += self.predictor.predict(self.wv, [x[1:-1] for x in data.file[pred:-1]])[1]
                 data.labels = labels
             else:
                 data.labels = self.predictor.predict(self.wv, [x[1:-1] for x in data.file])[1]
