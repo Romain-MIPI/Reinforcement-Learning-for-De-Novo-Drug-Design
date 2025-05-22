@@ -3,6 +3,8 @@ import torch
 import random
 import numpy as np
 
+from tqdm import trange
+
 from models.utils import read_smi_file, get_tokens, read_object_property_file, save_smiles_property_file
 
 class GeneratorData(object):
@@ -106,13 +108,25 @@ class GeneratorData(object):
         return inp, target
 
     def update_elite(self, elite_smiles, elite_labels):
-        smiles, labels = self.file, self.labels
+        if self.labels == []:
+            labels = []
+            if len(self.file) > 1000:
+                pred = 0
+                for i in trange(1000, self.file_len, 1000):
+                    labels += self.predictor.predict(self.wv, [x[1:-1] for x in self.file[pred:i]])[1]
+                    pred = i
+                if len(self.file) % 1000 != 0:
+                    labels += self.predictor.predict(self.wv, [x[1:-1] for x in self.file[pred:-1]])[1]
+                self.labels = labels
+            else:
+                self.labels = self.predictor.predict(self.wv, [x[1:-1] for x in self.file])[1]
+
         n_to_change = len(elite_smiles)
-        poor_smiles = np.where(labels == 0)[0]
+        poor_smiles = np.where(self.labels == 0)[0]
         index_to_change = np.random.choice(poor_smiles, n_to_change)
         for i, ind in enumerate(index_to_change):
-            smiles[ind] = elite_smiles[i]
-            labels[ind] = elite_labels[i]
+            self.file[ind] = elite_smiles[i]
+            self.labels[ind] = elite_labels[i]
         
     def update_data(self, path):
         self.file, success = read_smi_file(path, unique=True)

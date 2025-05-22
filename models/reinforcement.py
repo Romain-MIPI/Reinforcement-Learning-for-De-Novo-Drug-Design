@@ -2,7 +2,6 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from rdkit import Chem
-from tqdm import trange
 
 class Reinforcement(object):
     def __init__(self, generator, predictor, wv, get_reward):
@@ -146,21 +145,7 @@ class Reinforcement(object):
         
         return total_reward, rl_loss.item()
     
-    def cross_entropy(self, data, initialize=True, n_batch=10, n_iter=100, percentile=0.2):
-        # compute labels of data
-        if initialize:
-            labels = []
-            if len(data.file) > 1000:
-                pred = 0
-                for i in trange(1000, len(data.file), 1000):
-                    labels += self.predictor.predict(self.wv, [x[1:-1] for x in data.file[pred:i]])[1]
-                    pred = i
-                if len(data.file) % 1000 != 0:
-                    labels += self.predictor.predict(self.wv, [x[1:-1] for x in data.file[pred:-1]])[1]
-                data.labels = labels
-            else:
-                data.labels = self.predictor.predict(self.wv, [x[1:-1] for x in data.file])[1]
-
+    def cross_entropy(self, data, n_batch=10, n_iter=100, percentile=0.2):
         self.generator.optimizer.zero_grad()
         total_reward = 0
         for _ in range(n_batch):
