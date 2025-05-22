@@ -122,7 +122,7 @@ class GeneratorData(object):
                 self.labels = predictor.predict(wv, [x[1:-1] for x in self.file])[1]
 
         n_to_change = len(elite_smiles)
-        poor_smiles = np.where(self.labels == 0)[0]
+        poor_smiles = np.where(np.array(self.labels) == 0)[0]
         index_to_change = np.random.choice(poor_smiles, n_to_change)
         for i, ind in enumerate(index_to_change):
             self.file[ind] = elite_smiles[i]
