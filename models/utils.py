@@ -328,15 +328,15 @@ def sentences2vec(sentences, model, unseen=None):
 
     for sentence in sentences:
         if unseen:
-            vec.append(sum([model.wv.word_vec(y) if y in set(sentence) & keys
-                       else unseen_vec for y in sentence]))
+            tmp = sum([model.wv.word_vec(y) if y in set(sentence) & keys
+                       else unseen_vec for y in sentence])
+            if tmp != 0:
+                vec.append(tmp)
+            else:
+                vec.append(np.zeros(model.wv.vector_size))
         else:
             vec.append(sum([model.wv.word_vec(y) for y in sentence 
                             if y in set(sentence) & keys]))
-
-    print("###############################\n")        
-    print("vec :", vec)
-    print("###############################\n") 
 
     return np.array(vec)
 
